@@ -36,11 +36,12 @@ class db_context:
     
     #delete a database
     def delete_database(self, database_name):
-        for delete_db in self.database_archive:
-            if delete_db.db_name == database_name:
-                del delete_db
-                print('Database ', database_name, ' successfully deleted')
-        print('That database does not exit')
+        for i, v in enumerate(self.database_archive):
+            if v.db_name == database_name:
+                del self.database_archive[i]
+                print('Database', database_name, 'successfully deleted')
+                return
+        print('That database does not exist! cannot initiate a delete.')
 
     #check if the current input_context is the same
     def same_input(self, check_same, database_name):

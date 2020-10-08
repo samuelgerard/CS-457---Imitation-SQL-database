@@ -66,6 +66,7 @@ class arg_parser():
     #availble done
     #create database done
     #use done
+    #delete done
 
     def parseAvailable(self, input):
         db_runtime_context.display_databases()
@@ -89,7 +90,7 @@ class arg_parser():
         pass
 
     def parseDrop(self, input):
-        print('testing program 4')
+        db_runtime_context.delete_database(input[0])
         pass
 
     def parseSelect(self, input):
