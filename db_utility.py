@@ -2,7 +2,6 @@ import db_abstract
 from db_abstract import objs as objs
 import db_utility
 import os
-import pdb
 from db_abstract import new_db_in_use
 
 '''

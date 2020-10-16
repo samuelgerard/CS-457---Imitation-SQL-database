@@ -7,10 +7,14 @@ from db_abstract import objs as objs
 import db_context
 
 db_runtime_context = db_context.db_context()
+DEFAULT = 'EMPTY'
 
 from Createmodule import create_argument
-
-DEFAULT = 'EMPTY'
+from SelectModule import select_argument
+from AlterModule import alter_argument
+from InsertModule import insert_argument
+from UpdateModule import update_argument    
+from DeleteModule import delete_argument
 
 
 class arg_parser():
@@ -40,16 +44,22 @@ class arg_parser():
             "ALTER": self.parseAlter,
             "DROP": self.parseDrop,
             "SELECT": self.parseSelect,
-            "AVAILABLE": self.parseAvailable
+            "AVAILABLE": self.parseAvailable,
+            "UPDATE": self.parseUpdate,
+            "INSERT": self.parseInsert,
+            "ALL": self.display_all,
+            "DELETE": self.parseDelete
         }
 
         #Notes for when I get back to this:
         #Parse the arguments into a string in a seperate function
         #return those arguments as a list of 'tokens'
         #make a seperate function to execute those commands
+
+        #ALL DONE
         
         input_string = input_string.strip() #strip whitespaces
-        arguments = input_string.split('.') #split the argument string after the '.'
+        arguments = input_string.split(';') #split the argument string after the ';'
         iteration = 0
         for check_states in arguments:
             check_states = check_states.strip()
@@ -62,109 +72,63 @@ class arg_parser():
             if token_args[0].upper() in states.keys():
                 self.arguments.put(states[token_args[0].upper()](token_args[1:]))
         return self.arguments
-    
-    #availble done
-    #create database done
-    #use done
-    #delete done
+
 
     def parseAvailable(self, input):
         db_runtime_context.display_databases()
 
     def parseCreate(self, input):
-        if input[0].upper() != "TABLE":
-            initiate_create = create_argument("DATABASE", dbname=input[0])
+        if input[0].upper() == "DATABASE":
+            initiate_create = create_argument("DATABASE", dbname=input[1])
             initiate_create.execute()
         elif input[0].upper() == "TABLE":
-            create_argument("TABLE", attributes=input[1:])
+            initiate_create_table = create_argument("TABLE", attributes=input[1:])
+            initiate_create_table.execute()
         else:
             print('input unsuccesful')
             pass 
 
     def parseUse(self, input):
         db_runtime_context.set_database(input[0])
-        pass
+
 
     def parseAlter(self, input):
-        print('testing program 3')
-        pass
+        if input[0].upper() == "TABLE":
+            initiate_alteration = alter_argument(input[1:])
+            initiate_alteration.execute()
+        else:
+            return None
 
     def parseDrop(self, input):
-        db_runtime_context.delete_database(input[0])
-        pass
+        if input[0].upper() == "DATABASE":
+            db_runtime_context.delete_database(input[1])
+        elif input[0].upper() == "TABLE":
+            db_runtime_context.delete_table(input[1])
+        else:
+            print('nothing')
+    
+    def parseInsert(self, input):
+        if input[0].upper() != "INTO":
+            print('Invalid statement!')
+            return None
+        initiate_insert = insert_argument(input[1:])
+        initiate_insert.execute()
+
+    def parseUpdate(self, input):
+        initiate_update = update_argument(input)
+        initiate_update.execute()
+        
+    def display_all(self, input):
+        db_runtime_context.display_all_tables()
+
 
     def parseSelect(self, input):
-        print('testing program 5')
-        pass
+        select_parse = select_argument(input)
+        select_parse.execute()
     
-
-
-    def parse_arguments(self,string_argument):
-        #argument_counter = number_of_arguments(string_argument)
-        list_of_arguments = []
-        data_args = []
-        argument_array = []
-
-        try:
-            for seek_argument in string_argument:
-                if seek_argument == '?':
-                    db_utility.options_display()
-                    return
-                elif seek_argument == ' ':
-                    list_of_arguments.append(db_utility.list_to_string(argument_array))
-                    argument_array = []
-                    continue
-                elif seek_argument == '.':
-                    list_of_arguments.append(db_utility.list_to_string(argument_array))
-                    break
-                elif seek_argument == '(':
-                    data_args = self.establish_data_args(string_argument)
-                argument_array.append(seek_argument)
-                
-
-            
-            if list_of_arguments[0] == 'create':
-                if list_of_arguments[1] == 'table':
-                    db_module.db_create_table(list_of_arguments[2:], data_args)
-                else:
-                    list_of_arguments = list_of_arguments[1:]
-                    db_module.db_create(list_of_arguments)
-            elif list_of_arguments[0] == 'delete':
-                if list_of_arguments[1] == 'table':
-                    db_module.db_delete_table(list_of_arguments[2])
-                    return
-                db_module.db_delete(list_of_arguments[1])
-            elif list_of_arguments[0] == 'available':
-                db_module.display_open_databases()
-                return
-            elif list_of_arguments[0] == 'use':
-                db_module.db_set_current_db(list_of_arguments[1])
-            elif list_of_arguments[0] == 'select':
-                if list_of_arguments[1] == '*':
-                    if list_of_arguments[2] == 'from':
-                        counter = 0
-                        while(True):
-                            if db_module.db_in_use.db_collection[counter].db_table_name == list_of_arguments[3]:
-                                db_module.db_in_use.db_collection[counter].display_columns()
-                                return
-                            if counter == 20:
-                                 print('invalid search query')
-                            counter = counter + 1    
-                       
-                    
-            
-            else:
-                print('no proper arguments were validated')
-                return 
-        except ValueError:
-            print('Argument parse error! please make sure your commands correctly. Returning to beginning command line.')
-            return
-        except KeyError:
-            print('Key error, gotta fix this')
-            return
-        except IndexError:
-            print("Index error, please ensure your command is correct and has a '.' at the end ")
-        
+    def parseDelete(self, input):
+        initiate_delete = delete_argument(input[1:])
+        initiate_delete.execute()    
         
 
 

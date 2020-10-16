@@ -1,17 +1,30 @@
-import pdb
 import db_abstract
 import db_module
 import argparse
+from PA2_test_run_script import test_string_list 
 from arguments import arg_parser
 
-EXIT_STATE = 'EXIT.'
+EXIT_STATE = 'EXIT;'
 
-def start_db():
+def start_db(commands = None, file = False):
+    print('\n')
+    argument_handler = arg_parser()
+    choice = input('A PA_2 test run script is available.\nThis Script is an imitation of the PA_2_test.sql file.\nWould you like to run it? (y/n):')
+    if choice == 'y':
+        print('\n')
+        for com in test_string_list:
+            parsed_arguments = argument_handler.parse_args(com)
+        print('\nThe output of the test file is above')
+        print('\n')
+    elif choice == 'n':
+        pass
+        print('\n')
+    else:
+        pass        
+        print('\n')      
     print('Type "?" for help')
-    print('commands must end in a "." to execute')
-    print('If you did not read the documentation yet. PLEASE read it before handling this program.')
+    print('commands must end in a ";" to execute')
     while(True):
-        argument_handler = arg_parser()
         try:
             user_arguments = input('>>> ')
             if valid_input(user_arguments):
@@ -21,7 +34,7 @@ def start_db():
 
         except KeyboardInterrupt:
             while(True):
-                    y = input("Keybaord Interrupt, Exit Program? (y/n): ")
+                    y = input("Keyboard Interrupt, Exit Program? (y/n): ")
                     if y == 'n':
                         continue
                     elif y == 'y':
@@ -37,9 +50,9 @@ def valid_input(valid_input):
         if valid_input.upper() == EXIT_STATE:
             print('session complete, goodbye!')
             exit()
-        elif not valid_input.endswith('.') or valid_input == "":
+        elif not valid_input.endswith(';') or valid_input == "":
             return False
-        elif valid_input.endswith('.'):
+        elif valid_input.endswith(';'):
             return True
         else:
             print('Value error')
@@ -50,15 +63,6 @@ def valid_input(valid_input):
     except ValueError:
         print('Value error!')
         return False
-
-# def execute_instructions(execute_instructions):
-#     print('executing instructions')
-#     while not execute_instructions.empty():
-#         execute_instructions.get()
-
-
-        #come back here to deal with the current database context and use statement
-
         
 
 

@@ -34,14 +34,33 @@ class db_context:
         else:
             print('Database archive is empty.')
     
+    def display_table(self, name):
+        if name in self.current_db.tables:
+            self.current_db.tables[name].display_table_full()
+        else:
+            print('That table does not exist!')
+    
+    def display_all_tables(self):
+        for everything in self.current_db.tables:
+            print(everything)
+
+    
     #delete a database
     def delete_database(self, database_name):
         for i, v in enumerate(self.database_archive):
             if v.db_name == database_name:
                 del self.database_archive[i]
-                print('Database', database_name, 'successfully deleted')
+                print('Database', database_name, 'successfully dropped')
                 return
-        print('That database does not exist! cannot initiate a delete.')
+        print('That database does not exist! cannot initiate a drop.')
+    
+    def delete_table(self, table_name):
+        print(table_name)
+        if table_name in self.current_db.tables:
+            del self.current_db.tables[table_name]
+            print('Table', table_name, 'successfully dropped' )
+        else:
+            print('Invalid table name! cannot initiate a drop')
 
     #check if the current input_context is the same
     def same_input(self, check_same, database_name):
