@@ -1,5 +1,6 @@
 DEFAULT_NAME = 'EMPTY'
 
+import os
 '''
     objs is a global variable that holds
     all of the current instances
@@ -18,6 +19,28 @@ class _db_abstract_():
     def addTable(self, newTable):
         if self.db_name is not None:
             self.tables[newTable.safeName] = newTable
+
+    def save(self):
+        '''
+        Purpose:    Saves the Database and all member tables currently in
+                    memory to the disk.  
+        Parameters: None
+        Returns: None
+        '''
+        # Call Table.save() for all tables in the database.
+        for table in self.tables.values():
+            table.save()
+        
+        # Delete all files no longer stored in the model 
+        if self.db_name is not None:
+            dbDir = "./" + self.db_name + "/"
+
+            tableFiles = [tbl.fileName for tbl in self.tables.values()]
+            # print(tableFiles)
+            diskFiles = os.listdir(dbDir)
+            for filename in diskFiles:
+                if filename not in tableFiles:
+                    os.remove(dbDir + filename)
     
         
 

@@ -16,7 +16,7 @@ class select_argument(object):
         Returns: None
         '''
 
-        fields, aliases, conditions = self.__parseTables()
+        fields, aliases, conditions, joinType = self.__parseTables()
         
 
 
@@ -42,6 +42,8 @@ class select_argument(object):
                         print ("!Failed to query table", table, "because column",column,"does not exist.")
                         return None
         
+        # Step One: Replace aliases in conditions with table names
+        conditions = self.__replaceAliasesInConditional(conditions, aliases)
 
 
         tableName1, columns1, tableName2, columns2 = None, None, None, None
@@ -62,17 +64,18 @@ class select_argument(object):
 
         workingTable = Table(None, "MERGE", True)
 
-        
+
         tables = []
         attrList = [] 
         schema = {}
         for tableName, attrs in list(fields.items()):
-            tmp = db_runtime_context.current_db.tables[table]
+            tmp = db_runtime_context.current_db.tables[tableName]
 
             tname = tmp.getFriendlyName()
 
             attrList += [tname + "." + attr for attr in attrs]
             tables.append(tmp)
+
         
             modifiedSchema = {}
             for k, v in list(tmp.schema.items()):
@@ -85,12 +88,21 @@ class select_argument(object):
             if conditions is not None:
                 conditions[0] = columns1 
                 conditions[2] = columns2 
-        #JOIN statement will go here when need
+        elif joinType == Joins.INNER_JOIN:
+            tname1 = tables[0].getFriendlyName()
+            tname2 = tables[1].getFriendlyName()
+            for tb1Row in tables[0].getDataByAttrName("*"):
+                tb1Row = self.__addTableNameToRow(tname1, tb1Row) 
+                for tb2Row in tables[1].getDataByAttrName("*"):
+                    tb2Row = self.__addTableNameToRow(tname2, tb2Row)
+                    row = {**tb1Row, **tb2Row}
+                    workingTable.rows.append(row)
+            workingTable.setSchema(schema)
         else:
-            workingTable = Table.OuterJoin(tables[0], tables[1], conditions)
+            workingTable = Table.OuterJoin(tables[0], tables[1], joinType, conditions)
             workingTable.setSchema(schema)
 
-        workingTable.printTableByAttr(attrList, conditions)
+        workingTable.printTableByAttr(attrList, conditions, joinType)
 
     def __splitColAndTable(self, conditionVal):
         '''
@@ -109,6 +121,19 @@ class select_argument(object):
         else:
             column = splitTable[0].strip()
         return table, column
+
+    def __addTableNameToRow(self, tname, row):
+        '''
+        Purpose : Add a table's name to a row's keys
+        Parameters : 
+            tname: The name of the table to prepend to the row's keys
+            row: The row to correct
+        Returns: A new row with the table name prepended to each key
+        '''
+        newRow = {}
+        for k, v in list(row.items()):
+            newRow[tname + "." + k] = v 
+        return newRow
 
         
 
@@ -151,7 +176,7 @@ class select_argument(object):
                         fields[tableName].append(column[1])
 
 
-        return fields, aliases, conditions
+        return fields, aliases, conditions, joinType
 
     def __splitOnJoin(self,text):
 

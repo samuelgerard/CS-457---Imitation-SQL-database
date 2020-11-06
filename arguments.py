@@ -129,6 +129,13 @@ class arg_parser():
     def parseDelete(self, input):
         initiate_delete = delete_argument(input[1:])
         initiate_delete.execute()    
+
+    def save(self):
+        global db_runtime_context
+        if db_runtime_context.empty():
+            print('No databases available to save. Closing Program....')
+            return
+        db_runtime_context.save()
         
 
 

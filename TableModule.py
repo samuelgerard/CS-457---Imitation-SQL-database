@@ -1,4 +1,6 @@
 import Joins
+import os
+from pathlib import Path
 
 class Table(object):
     def __init__(self, dbName, tableName, newlyCreated=False):
@@ -124,7 +126,60 @@ class Table(object):
             return True
         except ValueError:
             return False
-        
+
+    def save(self):
+        '''
+        Purpose:    Write a table file to disk for persistent storage
+        Parameters: None
+        Returns:    None
+        '''
+
+        database_directory = os.path.join(os.getcwd(), 'saved_databases')
+        database_ls = os.listdir(database_directory)
+
+        # if self.dbName not in database_ls:
+
+        # if self.dbName is not None:
+        #     dbDir = os.path.join(os.getcwd(), self.dbName)
+        #     fid = open(dbDir + self.fileName, 'w+')
+
+        #     # Write the schema as the first row
+        #     fid.write(self.getSchemaString())
+
+        #     # Write each row to the file
+        #     for row in self.rows:
+        #         fid.write(" | ".join(row.values()))
+        #         fid.write('\n')
+        #     fid.close()
+
+        if self.dbName is not None:
+            dbDir = './' + self.dbName + '/'
+            fid = open(dbDir + self.fileName, mode='w')
+
+            # Write the schema as the first row
+            fid.write(self.getSchemaString())
+
+            # Write each row to the file
+            for row in self.rows:
+                fid.write(" | ".join(row.values()))
+                fid.write('\n')
+            fid.close()
+    
+    def getSchemaString(self):
+        '''
+        Purpose:    Creates formatted schema string for printing to file.
+        Parameters: None
+        Returns:    string of current schema.
+        '''
+        schemaStr = ""
+        index = 0
+        iterSchema = list(self.schema.items())
+        for attributeName, dataType in iterSchema:
+            schemaStr += attributeName + " (" + dataType + ") "
+            schemaStr += " | " if (index < len(self.schema) - 1) else "\n"
+            index += 1
+        return schemaStr
+
     def castColumn(self, column, castType):
         ''' 
         Purpose : Cast a value to a type
@@ -391,3 +446,79 @@ class Table(object):
         body = body[0:-1]
         print(body)
 
+    @classmethod
+    def OuterJoin(cls, ltable, rtable, joinType, conditions):
+        ''' 
+        Purpose : Do an outer join on two tables 
+        Parameters : 
+            ltable: The left table 
+            rtable: The right table
+            joinType: The type of join (use Joins.TYPE)
+            conditions: Conditions for adding rows
+        Returns: Table object representing the join operation
+        ''' 
+        found = False 
+        T = Table(None, "MERGE", True)
+        L, R = None, None
+        if joinType == Joins.LEFT_OUTER_JOIN:
+            L = ltable 
+            R = rtable 
+        elif joinType == Joins.RIGHT_OUTER_JOIN:
+            R = ltable 
+            L = rtable 
+        else:
+            return None
+
+        lName = L.getFriendlyName()
+        rName = R.getFriendlyName()
+
+        lCol = conditions[0].strip() # lCol = conditions[0].replace(lName, '')[1:]
+        operator = conditions[1].strip()
+        rCol = conditions[2].strip() # rCol = conditions[2].replace(rName, '')[1:]
+
+        for lRow in L.rows:
+            found = False 
+            lRow = cls.__addTableNameToRow(L, lName, lRow)
+            lVal = lRow[lCol]
+            index = 1
+            for rRow in R.rows:
+                rRow = cls.__addTableNameToRow(R, rName, rRow)
+                rVal = rRow[rCol]
+                if(cls.__conditionCompare(L, lVal, operator, rVal)):
+                    # Add the row normally 
+                    row = {**lRow, **rRow}
+                    T.rows.append(row)
+                    found = True 
+                elif index == len(R.rows) and found == False:
+                    for k in list(rRow.keys()):
+                        rRow[k] = ""
+                    row = {**lRow, **rRow}
+                    T.rows.append(row)
+                index += 1
+        
+        return T
+
+    def __addTableNameToRow(self, tname, row):
+        '''
+        Purpose : Add a table's name to a row's keys
+        Parameters :
+            tname: The name of the table to prepend to the row's keys
+            row: The row to correct
+        Returns: A new row with the table name prepended to each key
+        '''
+        newRow = {}
+        for k, v in list(row.items()):
+            newRow[tname + "." + k] = v
+        return newRow
+
+    def __getPrefix(self, attribute):
+        '''
+        Purpose : Get the prefix of a given attribute
+        Parameters : 
+            attribute: The attribute to get
+        Returns: The prefix (before the .) of the attribute. None if there is no .
+        '''
+        result = attribute.split('.')
+        if(len(result) == 1):
+            return None 
+        return result[0]

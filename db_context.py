@@ -22,7 +22,6 @@ class db_context:
             if set_db.db_name == database_name:
                 self.current_db = set_db
                 print('the current database being used is now set to:', database_name)
-                return
         print('That database does not exist')
 
     #display the current databases available and the current one being used
@@ -43,6 +42,11 @@ class db_context:
     def display_all_tables(self):
         for everything in self.current_db.tables:
             print(everything)
+
+    def empty(self):
+        if self.current_db is None:
+            return True
+        return False
 
     
     #delete a database
@@ -68,3 +72,6 @@ class db_context:
             if same.db_name == database_name:
                 return True
         return False
+
+    def save(self):
+        self.current_db.save()
