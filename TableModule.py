@@ -9,11 +9,49 @@ class Table(object):
         self.tableName = tableName
         self.fileName = tableName + ".tbl"
         self.safeName = tableName.lower()
-        self.schema = {}
-        self.rows = []
-        
 
-        # else:
+        # If the table is not brand new:
+        if not newlyCreated:
+            # Check to ensure the table does exist.  If it does, read in
+            # the table schema and data.
+            dbDir = './' + self.dbName + '/'
+            if self.fileName not in os.listdir(dbDir):
+                print("!Table", self.tableName, "not found")
+            else:
+                self.schema = None
+                self.rows = []
+                # Read in and store all data from the table
+                fid = open(dbDir + self.fileName)
+                lines = fid.readlines()
+
+                # Set the table schema
+                self.schema = self.__parseSchema(lines[0])
+
+                # Store each row as an entry in the dictionary
+                for row in lines[1:]:
+                    parsedRow = self.__parseRow(row)
+                    self.rows.append(parsedRow)
+                fid.close()
+        # If the table is new, create empty table.
+        else:
+            self.schema = {}
+            self.rows = []
+
+    def __parseRow(self, rowInput):
+        '''
+        Purpose:    Parse a row of data into a structured form
+        Parameters: rowInput: The row to parse
+        Returns:    A dictionary containing the data and column names
+        '''
+        columns = rowInput.split('|')
+        attributes = list(self.schema.keys())
+
+        row = {}
+        for i in range(len(columns)):
+            row[attributes[i]] = columns[i].strip()
+
+        return row
+
 
     def print_name(self):
         print(self.tableName)
@@ -134,23 +172,9 @@ class Table(object):
         Returns:    None
         '''
 
-        database_directory = os.path.join(os.getcwd(), 'saved_databases')
-        database_ls = os.listdir(database_directory)
-
-        # if self.dbName not in database_ls:
-
-        # if self.dbName is not None:
-        #     dbDir = os.path.join(os.getcwd(), self.dbName)
-        #     fid = open(dbDir + self.fileName, 'w+')
-
-        #     # Write the schema as the first row
-        #     fid.write(self.getSchemaString())
-
-        #     # Write each row to the file
-        #     for row in self.rows:
-        #         fid.write(" | ".join(row.values()))
-        #         fid.write('\n')
-        #     fid.close()
+        # database_directory = os.path.join(os.getcwd(), 'saved_databases')
+        
+        # database_ls = os.listdir(database_directory)
 
         if self.dbName is not None:
             dbDir = './' + self.dbName + '/'
@@ -164,6 +188,25 @@ class Table(object):
                 fid.write(" | ".join(row.values()))
                 fid.write('\n')
             fid.close()
+
+    def __parseSchema(self, schemaInput):
+        '''
+        Purpose:    Parses schema in format saved to files.
+        Parameters: schemaInput: The input to parse into a schema
+        Returns: A dictionary containing the schema for the table
+        
+        '''
+        schema = {}
+
+        columns = schemaInput.split('|')
+        for column in columns:
+            column = column.strip()
+            data = column.split()
+            attributeName = data[0]
+            dataType = data[1][1:-1]
+            schema[attributeName] = dataType
+
+        return schema
     
     def getSchemaString(self):
         '''

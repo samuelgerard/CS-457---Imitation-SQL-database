@@ -15,6 +15,8 @@ from AlterModule import alter_argument
 from InsertModule import insert_argument
 from UpdateModule import update_argument    
 from DeleteModule import delete_argument
+from TransactionModule import begin_transaction
+from CommitModule import commit_argument
 
 
 class arg_parser():
@@ -48,7 +50,9 @@ class arg_parser():
             "UPDATE": self.parseUpdate,
             "INSERT": self.parseInsert,
             "ALL": self.display_all,
-            "DELETE": self.parseDelete
+            "DELETE": self.parseDelete,
+            "BEGIN": self.parseBegin,
+            "COMMIT": self.parseCommit
         }
 
         #Notes for when I get back to this:
@@ -87,6 +91,24 @@ class arg_parser():
         else:
             print('input unsuccesful')
             pass 
+
+    def parseBegin(self, input):
+        if not len(input) == 1:
+            print('Invalid argument counter for Begin command')
+            return None
+        if not input[0].lower() == 'transaction':
+            print('Argument 2 is not transaction, returning')
+            return None
+        initiate_begin = begin_transaction()
+        initiate_begin.execute()
+        
+    def parseCommit(self, input):
+        if not len(input) == 0:
+            print('Invalid Statement for Commit command')
+            return None
+        else:
+            initiate_commit = commit_argument()
+            initiate_commit.execute()
 
     def parseUse(self, input):
         db_runtime_context.set_database(input[0])
@@ -135,7 +157,9 @@ class arg_parser():
         if db_runtime_context.empty():
             print('No databases available to save. Closing Program....')
             return
-        db_runtime_context.save()
+        else:
+            db_runtime_context.save()
+            print('Database and items saved')
         
 
 

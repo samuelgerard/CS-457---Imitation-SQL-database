@@ -44,11 +44,13 @@ class create_argument:
                 if new_table_name in db_runtime_context.current_db.tables:
                     print('!Failed to create table', new_table_name, 'because it already exists!')
                 else:
+                    print(self.attributes)
                     table_schema = self.parseSchema(self.attributes[1:])
                     new_table = Table(db_runtime_context.current_db.db_name, new_table_name, True)
                     new_table.setSchema(table_schema)
                     db_runtime_context.current_db.addTable(new_table)
                     print('Table', new_table.tableName, 'created')
+                db_runtime_context.current_db.save()
 
             else:
                 print("!Failed to create table", new_table_name, 'because there is no database being used!')

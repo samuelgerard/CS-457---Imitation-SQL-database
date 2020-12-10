@@ -1,7 +1,7 @@
 import db_abstract
 import db_module
 import argparse
-from PA2_test_run_script import test_string_list_PA2, test_string_list_PA3 
+from PA2_test_run_script import test_string_list_PA2, test_string_list_PA3, test_string_list_PA4 
 from arguments import arg_parser
 
 EXIT_STATE = 'EXIT;'
@@ -10,10 +10,10 @@ argument_handler = arg_parser()
 
 def start_db(commands = None, file = False):
     print('\n')
-    choice = input('A PA_3 test run script is available.\nThis Script is an imitation of the PA_3_test.sql file.\nWould you like to run it? (y/n):')
+    choice = input('A PA_4 test run script is available.\nThis Script is an imitation of the PA_4_test.sql file. HOWEVER, because this iteration of the project is reliant on 2 command lines, this test file will only go up until after we begin a transaction and do the intial update to the flights table.\nWould you like to run it? (y/n):')
     if choice == 'y':
         print('\n')
-        for com in test_string_list_PA3:
+        for com in test_string_list_PA4:
             # print(com)
             parsed_arguments = argument_handler.parse_args(com)
         print('\nThe output of the test file is above')
@@ -46,16 +46,14 @@ def start_db(commands = None, file = False):
         except ValueError:
                 print("Invalid Value Input")
                 continue
-    
 
 
 def valid_input(valid_input):
     global argument_handler
     try: 
         if valid_input.upper() == EXIT_STATE:
-            print('session complete, goodbye!')
             argument_handler.save()
-            print('Database and items saved')
+            print('session complete, goodbye!')
             exit()
         elif not valid_input.endswith(';') or valid_input == "":
             return False

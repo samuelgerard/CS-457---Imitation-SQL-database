@@ -1,4 +1,5 @@
 import db_abstract
+import os
 
 class db_context:
     """
@@ -15,14 +16,18 @@ class db_context:
 
     #set the current database being used
     def set_database(self, database_name):
-        if self.current_db == database_name:
-            print('That database is already being used!')
-            return
-        for set_db in self.database_archive: 
-            if set_db.db_name == database_name:
-                self.current_db = set_db
-                print('the current database being used is now set to:', database_name)
-        print('That database does not exist')
+        if database_name in next(os.walk("."))[1]:
+            if self.current_db is not None:
+                self.current_db.save()
+            self.current_db = db_abstract._db_abstract_(database_name)
+            print('Now using Database: ', database_name)
+        # for set_db in self.database_archive: 
+        #     if set_db.db_name == database_name:
+        #         self.current_db = set_db
+        #         print('the current database being used is now set to:', database_name)
+        #         return
+        else:
+            print('That database does not exist')
 
     #display the current databases available and the current one being used
     def display_databases(self):
@@ -74,4 +79,5 @@ class db_context:
         return False
 
     def save(self):
-        self.current_db.save()
+        for save_db in self.database_archive:
+            save_db.save()

@@ -28,3 +28,11 @@ test_string_list_PA3 = ['create database CS457_PA3;',
                         "select * from Employee E, Sales S where E.id = S.employeeID;",
                         "select * from Employee E inner join Sales S on E.id = S.employeeID;",
                         "select * from Employee E left outer join Sales S on E.id = S.employeeID;"]
+
+test_string_list_PA4 = ['create database CS457_PA4;',
+                        'use CS457_PA4;',
+                        'create table Flights (seat int, status int);',
+                        'insert into Flights values (22,0);',
+                        'insert into Flights values (23,1);',
+                        'begin transaction;',
+                        'update flights set status = 1 where seat = 22;']

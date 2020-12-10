@@ -35,10 +35,9 @@ class insert_argument(object):
 
             # Check for a lock
             # if not self.database.isWritable(table.tableName):
-            #     print(f"Error: Table {table.tableName} is locked!")
-            #     return
 
             db_runtime_context.current_db.tables[self.tableName].insert(self.values)
+            db_runtime_context.current_db.save()
             return
         except KeyError:
             print('KeyError!', self.tableName)
@@ -57,6 +56,7 @@ class insert_argument(object):
         
         # queryInput[1:] is now the values to insert. last value might have ) attached 
         queryInput = queryInput[1:]
+
 
         # Remove "values" and '(' from first element 
         queryInput[0] = queryInput[0][6:].replace('(', '')

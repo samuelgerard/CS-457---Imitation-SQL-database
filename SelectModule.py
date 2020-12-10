@@ -32,7 +32,7 @@ class select_argument(object):
         columnInTables = False
         # For each table/column pair verify add the Table objects to a list.
         for table in fields.keys():
-            temp = db_runtime_context.current_db.tables[table]
+            temp = db_runtime_context.current_db.getTableByName(table)
             if temp is None:
                 print ("!Failed to query table", table, "because it does not exist.")
                 return None
@@ -61,22 +61,24 @@ class select_argument(object):
                 print ("!Failed to query because", tableName2, "is not being selected.")
                 return None
 
-
+        #working table is the table that is a copy of the table that is selected and will be printed out when the
+        #provided schemas and conditions are parsed out
         workingTable = Table(None, "MERGE", True)
 
-
+        #Here we will parse out the attributes that will be printed out by pulling the specified table from the database
         tables = []
         attrList = [] 
         schema = {}
         for tableName, attrs in list(fields.items()):
-            tmp = db_runtime_context.current_db.tables[tableName]
+            tmp = db_runtime_context.current_db.getTableByName(tableName)
 
             tname = tmp.getFriendlyName()
 
             attrList += [tname + "." + attr for attr in attrs]
             tables.append(tmp)
 
-        
+            #Here we create a modified schema that is based off what is requested and will be used to form what 
+            #is returned for in the working tbale
             modifiedSchema = {}
             for k, v in list(tmp.schema.items()):
                 modifiedSchema[tname + "." + k] = v 
@@ -213,7 +215,7 @@ class select_argument(object):
         for i in range(len(conditional)):
             dotIndex = conditional[i].find('.')
             conditional[i] = conditional[i][0:dotIndex].lower() + conditional[i][dotIndex:]
-
+        #set the provided conditions
         conditions = conditional
         for alias, trueName in list(aliases.items()):
             if conditional[0].startswith(alias + "."):
